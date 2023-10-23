@@ -1,38 +1,36 @@
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib import event, Version
-from extronlib.ui import Level
-from extronlib.system import Timer, Wait, ProgramLog
-from extronlib.device import ProcessorDevice, UIDevice
-from extronlib.interface import RelayInterface
-
-
+from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
+from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
+    DigitalInputInterface, DigitalIOInterface, EthernetClientInterface,
+    EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
+    RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
+    VolumeInterface)
+from extronlib.ui import Button, Knob, Label, Level, Slider
+from extronlib.system import Clock, MESet, Timer, Wait,ProgramLog
+import extr_sm_SMP_300_Series_v1_16_3_0 as SMP351
+import pana_camera_AW_UE4_Series_v1_0_1_0 as PanaAWUE4
+import smsg_display_QMxxR_v1_1_4_0 as Samsung
+import entt_lc_DINODE_EthergateMK3_v1_1_1_2 as Enttec
 print(Version())
 ProgramLog(Version(),'info')
-
 from Objects import Btns, Labels
 from ObjectsModule import ObjectsInitialize, TP, TPME, Counter, Pressed, Momtry
 from ConnectionsModule import TCPConnection, ModuleConnection
-
-# Module Imports
-import extr_sm_SMP_300_Series_v1_16_3_0 as SMP351
-import smsg_display_QMxxR_v1_1_4_0 as Samsung
-import entt_lc_DINODE_EthergateMK3_v1_1_1_2 as Enttec
-
-IPData = {
-    "PTZ": "10.230.1.11",
-    "DMX": "10.230.1.9"
-}
-
-# Devices
 Processor = ProcessorDevice('ProcessorAlias')
 TLP = UIDevice('PanelAlias')
-
+#Recorder = SMP351.EthernetClass('192.168.1.13', 23, Model='SMP 351') 
 Recorder = SMP351.SerialClass(Processor, 'COM1', Baud=9600, Model='SMP 351')
-Displays = Samsung.SerialClass(Processor, 'IRS1', Model='QM32R')
-LightboardPower = RelayInterface(Processor, 'RLY1')
-Lights = Enttec.EthernetClass(IPData['DMX'], 6454, Model='DIN-ODE')
 
+Camera = PanaAWUE4.HTTPClass('192.168.1.15', 80, 'admin', 'admin', Model='AW-UE4') #password has been changed from 'password' to 'admin'
+Display1 = Samsung.EthernetClass('192.168.1.16', 1515, Model='QM32R')
+Display2 = Samsung.EthernetClass('192.168.1.17', 1515, Model='QM32R')
+Lights = Enttec.EthernetClass('192.168.1.14', 6454, Model='DIN-ODE')
 BtnTLP = ObjectsInitialize(TLP,Btns,Labels)
+
+Display1Connect = ModuleConnection(Display1, 'Samsung', ['Power'], 10, {'Device ID': '0'})
+Display2Connect = ModuleConnection(Display2, 'Samsung', ['Power'], 10, {'Device ID': '0'})
+
 InputGroup = TPME(BtnTLP.BtnsList, [4,5,6,7])
 PresetGroup = TPME(BtnTLP.BtnsList, [341,342,343])
 LayoutGroup = TPME(BtnTLP.BtnsList, [101,102,103,104])
@@ -63,13 +61,6 @@ Status = {'RecState' : '', 'USBDrive' : '', 'RecRes' : '', 'Select HD' : '1080p'
           341 : Preset1Btn.TPbtn, 342 : Preset2Btn.TPbtn, 14 : 255, 15 : 0, 'Type' : ''}
 TLP.ShowPage('1 Welcome')
 BtnTLP.LblList[7].SetText('Recorder Ready')
-
-
-def DisplayPower(state):
-    dispStr = 'On' if state else 'Off'
-    print('disp pwr', dispStr)
-    Displays.Set('Power', dispStr, {'Device ID': '0'})
-
 #@SMPConnect.ConnectionStatus
 #def SMPConnection(status):
     #if status[0] == 'SMP':
@@ -98,8 +89,10 @@ def Initialize():
     Recorder.SubscribeStatus('RemainingFrontUSBStorage', None, SMPStatus)
     Recorder.SubscribeStatus('RemainingRecordingTime', None, SMPStatus)
     Recorder.SubscribeStatus('AudioLevel', None, SMPStatus)
-    Displays.SubscribeStatus('Power', None, DisplayStatus)
-    Displays.Update('Power', {'Device ID' : 0})
+    Display1.SubscribeStatus('Power', None, DisplayStatus)
+    Display2.SubscribeStatus('Power', None, DisplayStatus)
+    Display1.Update('Power', {'Device ID' : 0})
+    Display2.Update('Power', {'Device ID' : 0})
     #Recorder.SubscribeStatus('InputA', None, SMPStatus)
     #Recorder.SubscribeStatus('InputB', None, SMPStatus)
     #Recorder.Update('InputStatus') 
@@ -125,8 +118,10 @@ def TimerSave(timer, count):
 SavingTimer = Timer(1, TimerSave)
 SavingTimer.Stop()
 
+
+
 def ReadyCount(timer, count):  
-    BtnTLP.LblList[8].SetText(str(10 - count))
+    BtnTLP.LblList[8].SetText(str(10 - count))    
     if count == 3:
         Recorder.Set('Record', 'Start')
     if count == 10:
@@ -141,6 +136,7 @@ def ReadyCount(timer, count):
             RecBtn.TPbtn.SetState(1)                   
             StopRecBtn.TPbtn.SetVisible(True)
             ReadyTimer.Stop()
+
              
             
 ReadyTimer = Timer(1, ReadyCount)
@@ -151,8 +147,8 @@ ReadyTimer.Stop()
         #SystemShutdown()
 def SystemShutdown():
     Recorder.Set('Record', 'Stop')
-    LightboardPower.SetState(0)
-    DisplayPower(False)
+    Display1.Set('Power', 'Off', {'Device ID': '0'})
+    Display2.Set('Power', 'Off', {'Device ID': '0'}) 
     ResetSettings()        
     TLP.HideAllPopups()
     TLP.ShowPage('1 Welcome')
@@ -163,14 +159,12 @@ def SystemShutdown():
     LightsOffTimer.Restart()
 
 def LightsOn(timer, count):
-    Lights.Set('SendDMX512Data',255, {'Slot': '1'})
-
+    Lights.Set('SendDMX512Data',255, {'Slot': '1'})    
 LightsOnTimer = Timer(3, LightsOn)   
 LightsOnTimer.Stop()
 
 def LightsOff(timer, count):
-    Lights.Set('SendDMX512Data',0, {'Slot': '1'})
-    
+    Lights.Set('SendDMX512Data',0, {'Slot': '1'})    
 LightsOffTimer = Timer(3, LightsOff)   
 LightsOffTimer.Stop()
 
@@ -186,7 +180,6 @@ def ResetSettings():
     RecTimeGroup.MEGroup.SetCurrent(None)
     if Status['TimingRemain'] != None:
         Status['TimingRemain'].CounterState('Stop') 
-
 def DisplayStatus(Command, Value , Qualifier):
     print('Display', Command, Value , Qualifier)
     
@@ -249,9 +242,8 @@ def TLPBtnsPressed(button, state):
                 TLP.ShowPage('2 RecordSetup')
                 TLP.ShowPopup('RecordSetup')
                 InputGroup.MEGroup.SetCurrent(RecSetupBtn.TPbtn)
-                DisplayPower(True)
-                LightboardPower.SetState(1)
-
+                Display1.Set('Power', 'On', {'Device ID': '0'})
+                Display2.Set('Power', 'On', {'Device ID': '0'})
         elif button.ID == Btns['USB']: #usb selected
             #if Status['Recorder'][1] in ('Connected','ConnectedAlready'):
             Status['Type'] = 'USB'
@@ -260,15 +252,14 @@ def TLPBtnsPressed(button, state):
         elif button.ID == Btns['Start']:  #usb recording - check usb status before proceeding
             LightsOffTimer.Stop()
             LightsOnTimer.Restart()
-            DisplayPower(True)
-            LightboardPower.SetState(1)
-            
+            Display1.Set('Power', 'On', {'Device ID': '0'}) 
+            Display2.Set('Power', 'On', {'Device ID': '0'}) 
             if Status['USBDrive'] == 'Rear USB':
                 TLP.ShowPage('2 RecordSetup')
                 TLP.ShowPopup('RecordSetup')
                 InputGroup.MEGroup.SetCurrent(RecSetupBtn.TPbtn)                
         elif button.ID in range(101,105): 
-            LayoutGroup.MEGroup.SetCurrent(button)
+            LayoutGroup.MEGroup.SetCurrent(button)    
             Recorder.Set('RecallLayoutPreset', button.Name[-1:], {'Inputs': 'Without Inputs'})              
         elif button.ID in range(4,8):
             InputGroup.MEGroup.SetCurrent(button) 
@@ -278,16 +269,14 @@ def TLPBtnsPressed(button, state):
             Pressed(BtnTLP.BtnsList, 5)   # select record controls
             Pressed(BtnTLP.BtnsList, 201) # select 5 minute record
             Pressed(BtnTLP.BtnsList, 301) # start recording
-            # # Camera.Set('PresetRecall', '2')  # medium close up
+            Camera.Set('PresetRecall', '2')  # medium close up
 
         elif button.ID in range(201,205):
             RecTimeGroup.MEGroup.SetCurrent(button)
             Status['RecMode'] = button.Name        
             if button.ID != 204:           
-                print(Status[button.ID])
                 Status['TimingRemain'] = Counter(Status[button.ID], 'Down', TLP, TimeRemainLbl.TPbtn)  
             else:
-                print(1, 'Up', TLP, TimeRemainLbl.TPbtn)
                 Status['TimingRemain'] = Counter(1, 'Up', TLP, TimeRemainLbl.TPbtn)         
             Status['TimingDur'] = Counter(1, 'Up', TLP, TimeDurLbl.TPbtn)            
             global TestStatus
@@ -352,8 +341,8 @@ def TLPBtnsPressed(button, state):
         elif button.ID in (14,15): # lights
             LightGroup.MEGroup.SetCurrent(button)
             if button.ID == 14:
-                Lights.Set('SendDMX512Data', 0, {'Slot': '1'})
-                Lights.Set('SendDMX512Data', 255, {'Slot': '1'})
+                Lights.Set('SendDMX512Data',0, {'Slot': '1'})
+                Lights.Set('SendDMX512Data',255, {'Slot': '1'})
                 LightsOffTimer.Stop()
                 LightsOnTimer.Restart()
             elif button.ID == 15:
@@ -422,27 +411,27 @@ def TLPBtnsPressed(button, state):
                     BtnTLP.LblList[10].SetText('It is safe to remove USB flash drive')
                 else:
                     BtnTLP.LblList[10].SetText('Recording Saved to Panopto')
-                SavingTimer.Restart()
+                SavingTimer.Restart()      
         elif button.ID in range(710,712):   # camera zooming
             button.SetState(1)
-            # Camera.Set('Zoom', button.Name, {'Zoom Speed': 35})             
+            Camera.Set('Zoom', button.Name, {'Zoom Speed': 35})             
         elif button.ID in range(712,716):   # camera control
             CamPos.TPbtn.SetState(Status[button.ID]) 
-            # Camera.Set('PanTilt', button.Name, {'Pan Tilt Speed': 35})        
+            Camera.Set('PanTilt', button.Name, {'Pan Tilt Speed': 35})        
     elif state == 'Held': 
         if button.ID in(341,342): # camera preset save
             button.SetBlinking('Fast', [0, 1])
             button.SetText('Saved') 
-            # Camera.Set('PresetSave', str(button.ID - 340))            
+            Camera.Set('PresetSave', str(button.ID - 340))            
     elif state == 'Tapped':     
         if button.ID in range(710,716):   # camera control
             CamPos.TPbtn.SetState(0)
             button.SetState(0)
-            # Camera.Set('PanTilt', 'Stop', {'Pan Tilt Speed': 35})   
-            # Camera.Set('Zoom', 'Stop', {'Zoom Speed': 35})
+            Camera.Set('PanTilt', 'Stop', {'Pan Tilt Speed': 35})   
+            Camera.Set('Zoom', 'Stop', {'Zoom Speed': 35})
         elif button.ID in(341,342):
             PresetGroup.MEGroup.SetCurrent(Status[button.ID])
-            # Camera.Set('PresetRecall', str(button.ID-340)) 
+            Camera.Set('PresetRecall', str(button.ID-340)) 
             
         elif button.ID in (14,15): # lights
             LightGroup.MEGroup.SetCurrent(button)
@@ -450,22 +439,20 @@ def TLPBtnsPressed(button, state):
             Lights.Set('SendDMX512Data',Status[button.ID], {'Slot': '1'})   
     elif state == 'Released': 
         if button.ID in(341,342):
-            # Camera.Set('PresetSave', str(button.ID-340))
+            Camera.Set('PresetSave', str(button.ID-340))
 
             button.SetText(button.Name)
             PresetGroup.MEGroup.SetCurrent(Status[button.ID])
         elif button.ID in range(710,712):   # camera zooming
             button.SetState(0)
-            # Camera.Set('Zoom', 'Stop', {'Zoom Speed': 35})
+            Camera.Set('Zoom', 'Stop', {'Zoom Speed': 35})
         elif button.ID in range(712,716):   # camera control
             CamPos.TPbtn.SetState(0)
-            # Camera.Set('PanTilt', 'Stop', {'Pan Tilt Speed': 35}) 
+            Camera.Set('PanTilt', 'Stop', {'Pan Tilt Speed': 35}) 
 
 VUTimer = Timer(0.2, BarMeter)
 VUTimer.Stop()
 #SleepTimer = Timer(3600, Shutdown)
 ReadyTimer = Timer(1, ReadyCount)
 ReadyTimer.Stop()
-Lights.Connect()
-
 Initialize()
