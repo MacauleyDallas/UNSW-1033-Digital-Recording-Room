@@ -9,7 +9,6 @@ from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
 from extronlib.ui import Button, Knob, Label, Level, Slider
 from extronlib.system import Clock, MESet, Timer, Wait,ProgramLog
 import extr_sm_SMP_300_Series_v1_16_3_0 as SMP351
-import pana_camera_AW_UE4_Series_v1_0_1_0 as PanaAWUE4
 import smsg_display_QMxxR_v1_1_4_0 as Samsung
 import entt_lc_DINODE_EthergateMK3_v1_1_1_2 as Enttec
 print(Version())
@@ -22,7 +21,7 @@ TLP = UIDevice('PanelAlias')
 #Recorder = SMP351.EthernetClass('192.168.1.13', 23, Model='SMP 351') 
 Recorder = SMP351.SerialClass(Processor, 'COM1', Baud=9600, Model='SMP 351')
 
-Camera = PanaAWUE4.HTTPClass('192.168.1.15', 80, 'admin', 'admin', Model='AW-UE4') #password has been changed from 'password' to 'admin'
+# Camera = PanaAWUE4.HTTPClass('192.168.1.15', 80, 'admin', 'admin', Model='AW-UE4') #password has been changed from 'password' to 'admin'
 Display1 = Samsung.EthernetClass('192.168.1.16', 1515, Model='QM32R')
 Display2 = Samsung.EthernetClass('192.168.1.17', 1515, Model='QM32R')
 Lights = Enttec.EthernetClass('192.168.1.14', 6454, Model='DIN-ODE')
@@ -269,7 +268,7 @@ def TLPBtnsPressed(button, state):
             Pressed(BtnTLP.BtnsList, 5)   # select record controls
             Pressed(BtnTLP.BtnsList, 201) # select 5 minute record
             Pressed(BtnTLP.BtnsList, 301) # start recording
-            Camera.Set('PresetRecall', '2')  # medium close up
+            # Camera.Set('PresetRecall', '2')  # medium close up
 
         elif button.ID in range(201,205):
             RecTimeGroup.MEGroup.SetCurrent(button)
@@ -414,24 +413,24 @@ def TLPBtnsPressed(button, state):
                 SavingTimer.Restart()      
         elif button.ID in range(710,712):   # camera zooming
             button.SetState(1)
-            Camera.Set('Zoom', button.Name, {'Zoom Speed': 35})             
+            # Camera.Set('Zoom', button.Name, {'Zoom Speed': 35})             
         elif button.ID in range(712,716):   # camera control
             CamPos.TPbtn.SetState(Status[button.ID]) 
-            Camera.Set('PanTilt', button.Name, {'Pan Tilt Speed': 35})        
+            # Camera.Set('PanTilt', button.Name, {'Pan Tilt Speed': 35})        
     elif state == 'Held': 
         if button.ID in(341,342): # camera preset save
             button.SetBlinking('Fast', [0, 1])
             button.SetText('Saved') 
-            Camera.Set('PresetSave', str(button.ID - 340))            
+            # Camera.Set('PresetSave', str(button.ID - 340))            
     elif state == 'Tapped':     
         if button.ID in range(710,716):   # camera control
             CamPos.TPbtn.SetState(0)
             button.SetState(0)
-            Camera.Set('PanTilt', 'Stop', {'Pan Tilt Speed': 35})   
-            Camera.Set('Zoom', 'Stop', {'Zoom Speed': 35})
+            # Camera.Set('PanTilt', 'Stop', {'Pan Tilt Speed': 35})   
+            # Camera.Set('Zoom', 'Stop', {'Zoom Speed': 35})
         elif button.ID in(341,342):
             PresetGroup.MEGroup.SetCurrent(Status[button.ID])
-            Camera.Set('PresetRecall', str(button.ID-340)) 
+            # Camera.Set('PresetRecall', str(button.ID-340)) 
             
         elif button.ID in (14,15): # lights
             LightGroup.MEGroup.SetCurrent(button)
@@ -439,16 +438,16 @@ def TLPBtnsPressed(button, state):
             Lights.Set('SendDMX512Data',Status[button.ID], {'Slot': '1'})   
     elif state == 'Released': 
         if button.ID in(341,342):
-            Camera.Set('PresetSave', str(button.ID-340))
+            # Camera.Set('PresetSave', str(button.ID-340))
 
             button.SetText(button.Name)
             PresetGroup.MEGroup.SetCurrent(Status[button.ID])
         elif button.ID in range(710,712):   # camera zooming
             button.SetState(0)
-            Camera.Set('Zoom', 'Stop', {'Zoom Speed': 35})
+            # Camera.Set('Zoom', 'Stop', {'Zoom Speed': 35})
         elif button.ID in range(712,716):   # camera control
             CamPos.TPbtn.SetState(0)
-            Camera.Set('PanTilt', 'Stop', {'Pan Tilt Speed': 35}) 
+            # Camera.Set('PanTilt', 'Stop', {'Pan Tilt Speed': 35}) 
 
 VUTimer = Timer(0.2, BarMeter)
 VUTimer.Stop()
