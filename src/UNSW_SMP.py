@@ -18,17 +18,31 @@ from ObjectsModule import ObjectsInitialize, TP, TPME, Counter, Pressed, Momtry
 from ConnectionsModule import TCPConnection, ModuleConnection
 Processor = ProcessorDevice('ProcessorAlias')
 TLP = UIDevice('PanelAlias')
-#Recorder = SMP351.EthernetClass('192.168.1.13', 23, Model='SMP 351') 
-Recorder = SMP351.SerialClass(Processor, 'COM1', Baud=9600, Model='SMP 351')
 
+IPData = {
+    "PTZ": "10.230.1.11",
+    "DMX": "10.230.1.9"
+}
+
+#Recorder = SMP351.EthernetClass('192.168.1.13', 23, Model='SMP 351') 
 # Camera = PanaAWUE4.HTTPClass('192.168.1.15', 80, 'admin', 'admin', Model='AW-UE4') #password has been changed from 'password' to 'admin'
-Display1 = Samsung.EthernetClass('192.168.1.16', 1515, Model='QM32R')
-Display2 = Samsung.EthernetClass('192.168.1.17', 1515, Model='QM32R')
-Lights = Enttec.EthernetClass('192.168.1.14', 6454, Model='DIN-ODE')
+# Display1 = Samsung.EthernetClass('192.168.1.16', 1515, Model='QM32R')
+# Display2 = Samsung.EthernetClass('192.168.1.17', 1515, Model='QM32R')
+
+Recorder = SMP351.SerialClass(Processor, 'COM1', Baud=9600, Model='SMP 351')
+Lights = Enttec.EthernetClass(IPData['DMX'], 6454, Model='DIN-ODE')
+Displays = Samsung.SerialClass(Processor, 'IRS1', Model='QM32R')
+LightboardPower = RelayInterface(Processor, 'RLY1')
+
 BtnTLP = ObjectsInitialize(TLP,Btns,Labels)
 
-Display1Connect = ModuleConnection(Display1, 'Samsung', ['Power'], 10, {'Device ID': '0'})
-Display2Connect = ModuleConnection(Display2, 'Samsung', ['Power'], 10, {'Device ID': '0'})
+def DisplayPower(state):
+    dispStr = 'On' if state else 'Off'
+    print('disp pwr', dispStr)
+    Displays.Set('Power', dispStr, {'Device ID': '0'})
+
+# Display1Connect = ModuleConnection(Display1, 'Samsung', ['Power'], 10, {'Device ID': '0'})
+# Display2Connect = ModuleConnection(Display2, 'Samsung', ['Power'], 10, {'Device ID': '0'})
 
 InputGroup = TPME(BtnTLP.BtnsList, [4,5,6,7])
 PresetGroup = TPME(BtnTLP.BtnsList, [341,342,343])
@@ -88,10 +102,10 @@ def Initialize():
     Recorder.SubscribeStatus('RemainingFrontUSBStorage', None, SMPStatus)
     Recorder.SubscribeStatus('RemainingRecordingTime', None, SMPStatus)
     Recorder.SubscribeStatus('AudioLevel', None, SMPStatus)
-    Display1.SubscribeStatus('Power', None, DisplayStatus)
-    Display2.SubscribeStatus('Power', None, DisplayStatus)
-    Display1.Update('Power', {'Device ID' : 0})
-    Display2.Update('Power', {'Device ID' : 0})
+    # Display1.SubscribeStatus('Power', None, DisplayStatus)
+    # Display2.SubscribeStatus('Power', None, DisplayStatus)
+    # Display1.Update('Power', {'Device ID' : 0})
+    # Display2.Update('Power', {'Device ID' : 0})
     #Recorder.SubscribeStatus('InputA', None, SMPStatus)
     #Recorder.SubscribeStatus('InputB', None, SMPStatus)
     #Recorder.Update('InputStatus') 
@@ -146,8 +160,7 @@ ReadyTimer.Stop()
         #SystemShutdown()
 def SystemShutdown():
     Recorder.Set('Record', 'Stop')
-    Display1.Set('Power', 'Off', {'Device ID': '0'})
-    Display2.Set('Power', 'Off', {'Device ID': '0'}) 
+    DisplayPower(False)
     ResetSettings()        
     TLP.HideAllPopups()
     TLP.ShowPage('1 Welcome')
@@ -241,8 +254,9 @@ def TLPBtnsPressed(button, state):
                 TLP.ShowPage('2 RecordSetup')
                 TLP.ShowPopup('RecordSetup')
                 InputGroup.MEGroup.SetCurrent(RecSetupBtn.TPbtn)
-                Display1.Set('Power', 'On', {'Device ID': '0'})
-                Display2.Set('Power', 'On', {'Device ID': '0'})
+                DisplayPower(True)
+                LightboardPower.SetState(1)
+                
         elif button.ID == Btns['USB']: #usb selected
             #if Status['Recorder'][1] in ('Connected','ConnectedAlready'):
             Status['Type'] = 'USB'
@@ -251,8 +265,9 @@ def TLPBtnsPressed(button, state):
         elif button.ID == Btns['Start']:  #usb recording - check usb status before proceeding
             LightsOffTimer.Stop()
             LightsOnTimer.Restart()
-            Display1.Set('Power', 'On', {'Device ID': '0'}) 
-            Display2.Set('Power', 'On', {'Device ID': '0'}) 
+            DisplayPower(True)
+            LightboardPower.SetState(1)
+            
             if Status['USBDrive'] == 'Rear USB':
                 TLP.ShowPage('2 RecordSetup')
                 TLP.ShowPopup('RecordSetup')
