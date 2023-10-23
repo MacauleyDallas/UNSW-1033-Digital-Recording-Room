@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "1.0.0",
+  "system": {
+    "name": "E15-1033-DigitalRecordingRoom",
+    "code_folder_path": "src",
+    "code_entry_file": "UNSW_SMP.py",
+    "layout_folder_path": "layout",
+    "rfile_folder_path": "rfile",
+    "irfile_folder_path": "ir",
+    "sound_folder_path": "sound",
+    "system_id": "1549",
+    "author": {
+      "name": "decent"
+    },
+    "version": "0.0.165",
+    "primary_device_alias": "ProcessorAlias"
+  },
+  "devices": [
+    {
+      "name": "IPCP Pro 250 xi",
+      "alias": "ProcessorAlias",
+      "part_number": "60-1911-01",
+      "network": {
+        "interfaces": [
+          {
+            "address": "10.230.1.8",
+            "type": "LAN"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TLP Pro 1025T",
+      "alias": "PanelAlias",
+      "part_number": "60-1565-02",
+      "network": {
+        "host_network_type": "LAN",
+        "interfaces": [
+          {
+            "address": "10.230.1.12"
+          }
+        ]
+      },
+      "ui": {
+        "layout_file": "OneTouchRecording.gdl",
+        "enable_click_sound": true,
+        "press_feedback": "none",
+        "thumb_change_report_interval": 0.1,
+        "thumb_to_fill_sync_time": 0.5
+      },
+      "extron_control_web_id": "474fa7b0-967b-4825-94e3-2f9bfd6b7ef6"
+    }
+  ]
+}
