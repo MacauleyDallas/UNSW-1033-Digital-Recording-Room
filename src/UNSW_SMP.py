@@ -33,7 +33,7 @@ LightboardPower = RelayInterface(Processor, 'RLY1')
 Lights = Enttec.EthernetClass(IPData['DMX'], 6454, Model='DIN-ODE')
 
 BtnTLP = ObjectsInitialize(TLP,Btns,Labels)
-InputGroup = TPME(BtnTLP.BtnsList, [4,5,7])
+InputGroup = TPME(BtnTLP.BtnsList, [4,5,6,7])
 PresetGroup = TPME(BtnTLP.BtnsList, [341,342,343])
 LayoutGroup = TPME(BtnTLP.BtnsList, [101,102,103,104])
 RecTimeGroup = TPME(BtnTLP.BtnsList, [201,202,203,204])
@@ -123,13 +123,10 @@ def TimerSave(timer, count):
         
 
 SavingTimer = Timer(1, TimerSave)
-if SavingTimer.State == 'Running':
-    SavingTimer.Stop()
-
-
+SavingTimer.Stop()
 
 def ReadyCount(timer, count):  
-    BtnTLP.LblList[8].SetText(str(10 - count))    
+    BtnTLP.LblList[8].SetText(str(10 - count))
     if count == 3:
         Recorder.Set('Record', 'Start')
     if count == 10:
@@ -144,12 +141,10 @@ def ReadyCount(timer, count):
             RecBtn.TPbtn.SetState(1)                   
             StopRecBtn.TPbtn.SetVisible(True)
             ReadyTimer.Stop()
-
              
             
 ReadyTimer = Timer(1, ReadyCount)
-if SavingTimer.State == 'Running':
-    SavingTimer.Stop()
+ReadyTimer.Stop()
 
 #def Shutdown(timer, count):
     #if count == 1:
