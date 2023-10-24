@@ -1,12 +1,9 @@
-from ModuleSupport import eventEx
-from extronlib.interface import EthernetClientInterface
-from extronlib.system import Timer
-
-
 class BirdogPF120:
     tele = 1
     wide = 0
     camId = 0
+    far = 1
+    near = 0
     __interface__ = None
     __connectionTimer__ = None
 
@@ -18,7 +15,8 @@ class BirdogPF120:
         # TODO: Check if ethernet or rs232 interface
         if True:
             packet = self.__addIPHeader__(packet)
-        self.__interface__.Send(packet)
+        print(packet)
+        # self.__interface__.Send(packet)
         
     def __init__(self, interface, id, ZoomSpeed):
         self.__interface__ = interface
@@ -28,32 +26,28 @@ class BirdogPF120:
     def Zoom(self, State : bool = True, Direction : int = 1):
         if State:
             if Direction == self.tele:
-                cmd = '8{}0104072{}FF'.format(self.camId, self.zoomSpeed)
+                cmd = '8{}01040702FF'.format(self.camId)
             elif Direction == self.wide:
-                cmd = '8{}0104073{}FF'.format(self.camId, self.zoomSpeed)
+                cmd = '8{}01040703FF'.format(self.camId)
         else:
             cmd = '8{}01040700FF'.format(self.camId)
         self.__send__(cmd)
         
     def AutoFocus(self, State : bool = True):
         if State:
-            cmd = '8{}01043802FF'.format(self.camId, self.zoomSpeed)
+            cmd = '8{}01043802FF'.format(self.camId)
         else:
             cmd = '8{}01043803FF'.format(self.camId)
         self.__send__(cmd)
         
     def Focus(self, State : bool = True, Direction : int = 1):
         if State:
-            if Direction == self.tele:
-                cmd = '8{}0104082{}FF'.format(self.camId, self.zoomSpeed)
-            elif Direction == self.wide:
-                cmd = '8{}0104083{}FF'.format(self.camId, self.zoomSpeed)
+            if Direction == self.far:
+                cmd = '8{}01040802FF'.format(self.camId)
+            elif Direction == self.near:
+                cmd = '8{}01040803FF'.format(self.camId)
         else:
             cmd = '8{}01040800FF'.format(self.camId)
         self.__send__(cmd)
-
-    
-    
-
     
 
