@@ -53,7 +53,7 @@ InputGroup = TPME(BtnTLP.BtnsList, [4,5,6,7])
 PresetGroup = TPME(BtnTLP.BtnsList, [341,342,343])
 LayoutGroup = TPME(BtnTLP.BtnsList, [101,102,103,104])
 RecTimeGroup = TPME(BtnTLP.BtnsList, [201,202,203,204])
-SourceGroup = TPME(BtnTLP.BtnsList, [34,35])
+# SourceGroup = TPME(BtnTLP.BtnsList, [34,35])
 LightGroup = TPME(BtnTLP.BtnsList, [14,15])
 TimeRemainLbl = TP(BtnTLP.LblList, 304) # pass thru button object or id number you want   
 TimeDurLbl = TP(BtnTLP.LblList, 306)
@@ -62,11 +62,12 @@ RecSetupBtn = TP(BtnTLP.BtnsList, 4)
 RecBtn = TP(BtnTLP.BtnsList, 301)
 CamBtn = TP(BtnTLP.BtnsList, 6) # option selection
 PCBtn = TP(BtnTLP.BtnsList, 7)
-CamPos = TP(BtnTLP.BtnsList, 45)
+# CamPos = TP(BtnTLP.BtnsList, 45)
 
-Preset1Btn = TP(BtnTLP.BtnsList, 341) # cam presets
-Preset2Btn = TP(BtnTLP.BtnsList, 342)
+# Preset1Btn = TP(BtnTLP.BtnsList, 341) # cam presets
+# Preset2Btn = TP(BtnTLP.BtnsList, 342)
 StopRecBtn = TP(BtnTLP.BtnsList, 302)
+
 AudLvl = Level(TLP, 37)
 AudLvl.SetRange(-60, 0)
 
@@ -149,6 +150,7 @@ def TimerSave(timer, count):
         
 
 SavingTimer = Timer(1, TimerSave)
+print(SavingTimer.State)
 if SavingTimer.State != 'Stopped':
     SavingTimer.Stop()
 
@@ -456,16 +458,13 @@ def TLPBtnsPressed(button, state):
                 else:
                     BtnTLP.LblList[10].SetText('Recording Saved to Panopto')
                 SavingTimer.Restart()      
-        elif button.ID in range(710,712):   # camera zooming
+        elif button.ID in range(710, 711):   # camera zooming
             button.SetState(1)
             if button.ID is 710:
                 Camera.Zoom(True, Camera.tele) 
             else:
                 Camera.Zoom(True, Camera.wide) 
                      
-        elif button.ID in range(712,716):   # camera control
-            CamPos.TPbtn.SetState(Status[button.ID]) 
-            # Camera.Set('PanTilt', button.Name, {'Pan Tilt Speed': 35})        
     elif state == 'Held': 
         if button.ID in(341,342): # camera preset save
             button.SetBlinking('Fast', [0, 1])
@@ -491,13 +490,11 @@ def TLPBtnsPressed(button, state):
 
             button.SetText(button.Name)
             PresetGroup.MEGroup.SetCurrent(Status[button.ID])
-        elif button.ID in range(710,712):   # camera zooming
+        elif button.ID in range(710,711):   # camera zooming
             button.SetState(0)
             Camera.Zoom(False)
-            
-        elif button.ID in range(712,716):   # camera control
-            CamPos.TPbtn.SetState(0)
-            # Camera.Set('PanTilt', 'Stop', {'Pan Tilt Speed': 35}) 
+   
+       
 
 VUTimer = Timer(0.2, BarMeter)
 VUTimer.Stop()
