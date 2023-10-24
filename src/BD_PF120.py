@@ -10,7 +10,7 @@ class BirdogPF120:
     __interface__ = None
     __connectionTimer__ = None
 
-    def __addIPHeader__(cmd):
+    def __addIPHeader__(self, cmd):
         l = len([cmd[i:i + 2] for i in range(0, len(cmd), 2)])
         return b''.join([bytes.fromhex('0100'), bytes.fromhex(format(l, '04')), bytes.fromhex('000000')], bytes.fromhex(cmd))
 
