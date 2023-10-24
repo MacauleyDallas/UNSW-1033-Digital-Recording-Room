@@ -18,7 +18,7 @@ class BirdogPF120:
         # TODO: Check if ethernet or rs232 interface
         if True:
             packet = self.__addIPHeader__(packet)
-        self.__interface__.Send()
+        self.__interface__.Send(packet)
         
     def __init__(self, interface, id, ZoomSpeed):
         self.__interface__ = interface
