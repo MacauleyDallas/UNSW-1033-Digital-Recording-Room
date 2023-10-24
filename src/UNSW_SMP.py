@@ -498,9 +498,7 @@ def TLPBtnsPressed(button, state):
 
 VUTimer = Timer(0.2, BarMeter)
 StopTimer(VUTimer)
-if VUTimer.State != 'Stopped':
-    StopTimer(VUTimer)
-    
+
 #SleepTimer = Timer(3600, Shutdown)
 ReadyTimer = Timer(1, ReadyCount)
 StopTimer(ReadyTimer)
