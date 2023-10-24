@@ -81,7 +81,7 @@ Status = {'RecState' : '', 'USBDrive' : '', 'RecRes' : '', 'Select HD' : '1080p'
           201 : 300, 202 : 600, 203 : 900, 204 : 1800 , 'TimingRemain' : None, 'TimingDur' : None, 
           'State' : {'Start':'Resume'}, '1' : CamBtn.TPbtn, '2' : PCBtn.TPbtn,
           712 : 3, 713 : 4, 714 : 1, 715 : 2, 710 : 'Zoom', 711 : 'Zoom', 'Recorder' : 'Connected',
-          341 : Preset1Btn.TPbtn, 342 : Preset2Btn.TPbtn, 14 : 255, 15 : 0, 'Type' : '', 'Autofocus': True}
+          341 : None, 342 : None, 14 : 255, 15 : 0, 'Type' : '', 'Autofocus': True}
 TLP.ShowPage('1 Welcome')
 BtnTLP.LblList[7].SetText('Recorder Ready')
 
@@ -217,7 +217,7 @@ def ResetSettings():
     TimeDurLbl.TPbtn.SetText('00:00:00')
     TLP.SetLEDState(65533, 'Off')
     StopRecBtn.TPbtn.SetVisible(False)
-    SavingTimer.Stop()
+    StopTimer(SavingTimer)
     Status['RecMode'] = ''
     Status['Type'] = ''
     RecTimeGroup.MEGroup.SetCurrent(None)
@@ -338,7 +338,7 @@ def TLPBtnsPressed(button, state):
                             BtnTLP.LblList[9].SetText('Please wait.....Do not remove USB flash drive')
                         else:
                             BtnTLP.LblList[9].SetText('Please wait.....')
-                        VUTimer.Stop()
+                        StopTimer(VUTimer)
                         RecBtn.TPbtn.SetState(0)
                         StopRecBtn.TPbtn.SetVisible(False)
                         TimeRemainLbl.TPbtn.SetText('00:00:00')
@@ -374,12 +374,12 @@ def TLPBtnsPressed(button, state):
         elif button.ID == 12: # record again
             TLP.HidePopup('Finished')
             TLP.HidePopup('Saving')
-            SavingTimer.Stop()
+            StopTimer(SavingTimer)
             TLP.ShowPopup('RecordControls')
         elif button.ID == 20: # redo
             TLP.HidePopup('Finished')
             TLP.HidePopup('Saving')
-            SavingTimer.Stop()
+            StopTimer(SavingTimer)
             TLP.ShowPopup('RecordSetup')
             #InputGroup.MEGroup.SetCurrent(Status['1])
             InputGroup.MEGroup.SetCurrent(RecSetupBtn.TPbtn)
@@ -402,7 +402,6 @@ def TLPBtnsPressed(button, state):
         elif button.ID in (34,35): # smp inputs
             Recorder.Set('InputA', button.Name)
             # SourceGroup.MEGroup.SetCurrent(button)
-            
         elif button.ID == 301: # record button
             if Status['RecState'] == 'Start':
                 TLP.SetLEDBlinking(65533, 'Medium', ['Off', 'Red'])
@@ -445,7 +444,7 @@ def TLPBtnsPressed(button, state):
             TimeDurLbl.TPbtn.SetText('00:00:00')
             Status['TimingRemain'].CounterState('Stop') 
             Status['TimingDur'].CounterState('Stop')
-            VUTimer.Stop()
+            StopTimer(VUTimer)
             TLP.ShowPopup('Saving')
             if Status['Type'] == 'USB' :
                 BtnTLP.LblList[9].SetText('Please wait.....Do not remove USB flash drive')
@@ -465,23 +464,42 @@ def TLPBtnsPressed(button, state):
                 Camera.Zoom(True, Camera.tele) 
             else:
                 Camera.Zoom(True, Camera.wide) 
-                           
+                     
+    elif state == 'Held': 
+        if button.ID in(341,342): # camera preset save
+            button.SetBlinking('Fast', [0, 1])
+            button.SetText('Saved') 
+            # Camera.Set('PresetSave', str(button.ID - 340))            
     elif state == 'Tapped':     
-        if button.ID in (14,15): # lights
+        if button.ID in range(710,716):   # camera control
+            # CamPos.TPbtn.SetState(0)
+            button.SetState(0)
+            # Camera.Set('PanTilt', 'Stop', {'Pan Tilt Speed': 35})   
+            # Camera.Set('Zoom', 'Stop', {'Zoom Speed': 35})
+        elif button.ID in(341,342):
+            PresetGroup.MEGroup.SetCurrent(Status[button.ID])
+            # Camera.Set('PresetRecall', str(button.ID-340)) 
+            
+        elif button.ID in (14,15): # lights
             LightGroup.MEGroup.SetCurrent(button)
             #print(Status[button.ID])
             Lights.Set('SendDMX512Data',Status[button.ID], {'Slot': '1'})   
-    elif state == 'Released':
-        if button.ID in range(710,711):   # camera zooming
+    elif state == 'Released': 
+        if button.ID in(341,342):
+            # Camera.Set('PresetSave', str(button.ID-340))
+
+            button.SetText(button.Name)
+            PresetGroup.MEGroup.SetCurrent(Status[button.ID])
+        elif button.ID in range(710,711):   # camera zooming
             button.SetState(0)
             Camera.Zoom(False)
    
        
 
 VUTimer = Timer(0.2, BarMeter)
-VUTimer.Stop()
+StopTimer(VUTimer)
 if VUTimer.State != 'Stopped':
-    VUTimer.Stop()
+    StopTimer(VUTimer)
     
 #SleepTimer = Timer(3600, Shutdown)
 ReadyTimer = Timer(1, ReadyCount)
