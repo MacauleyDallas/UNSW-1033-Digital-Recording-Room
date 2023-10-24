@@ -6,6 +6,8 @@ from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
     EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
     RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
     VolumeInterface)
+
+from ModuleSupport import eventEx
 from extronlib.ui import Button, Knob, Label, Level, Slider
 from extronlib.system import Clock, MESet, Timer, Wait,ProgramLog
 import extr_sm_SMP_300_Series_v1_16_3_0 as SMP351
@@ -35,20 +37,9 @@ Lights = Enttec.EthernetClass(IPData['DMX'], 6454, Model='DIN-ODE')
 Displays = Samsung.SerialClass(Processor, 'IRS1', Model='QM32R')
 LightboardPower = RelayInterface(Processor, 'RLY1')
 Camera = BirdogPF120(EthernetClientInterface(IPData['PTZ'], 52381, Protocol='UDP'), 1, 5)
-Camera.Connect()
 
 
-@event(Camera.__interface__, ['Connected', 'Disconnected'])
-def SMDConnectionEvent(self, interface : EthernetClientInterface, state):
-    print('SMD on IP', interface.IPAddress, 'is', state)
-    if state == 'Connected':
-        interface.StartKeepAlive(30, 'Q')
-    else:
-        interface.StopKeepAlive()
-        Camera.__connectionTimer__.Restart()
-            
-            
-BtnTLP = ObjectsInitialize(TLP,Btns,Labels)
+BtnTLP = ObjectsInitialize(TLP, Btns, Labels)
 
 def DisplayPower(state):
     dispStr = 'On' if state else 'Off'
@@ -57,7 +48,6 @@ def DisplayPower(state):
 
 # Display1Connect = ModuleConnection(Display1, 'Samsung', ['Power'], 10, {'Device ID': '0'})
 # Display2Connect = ModuleConnection(Display2, 'Samsung', ['Power'], 10, {'Device ID': '0'})
-
 
 InputGroup = TPME(BtnTLP.BtnsList, [4,5,6,7])
 PresetGroup = TPME(BtnTLP.BtnsList, [341,342,343])
@@ -86,17 +76,31 @@ Status = {'RecState' : '', 'USBDrive' : '', 'RecRes' : '', 'Select HD' : '1080p'
           201 : 300, 202 : 600, 203 : 900, 204 : 1800 , 'TimingRemain' : None, 'TimingDur' : None, 
           'State' : {'Start':'Resume'}, '1' : CamBtn.TPbtn, '2' : PCBtn.TPbtn,
           712 : 3, 713 : 4, 714 : 1, 715 : 2, 710 : 'Zoom', 711 : 'Zoom', 'Recorder' : 'Connected',
-          341 : Preset1Btn.TPbtn, 342 : Preset2Btn.TPbtn, 14 : 255, 15 : 0, 'Type' : ''}
+          341 : Preset1Btn.TPbtn, 342 : Preset2Btn.TPbtn, 14 : 255, 15 : 0, 'Type' : '', 'Autofocus': True}
 TLP.ShowPage('1 Welcome')
 BtnTLP.LblList[7].SetText('Recorder Ready')
-#@SMPConnect.ConnectionStatus
-#def SMPConnection(status):
-    #if status[0] == 'SMP':
-        #Status['Recorder'] = status
-        #if Status['Recorder'][1] in ('Connected','ConnectedAlready'):
-            #
-        #else:
-            #BtnTLP.LblList[7].SetText('Recorder Offline')
+
+btnCamFocusFar = Button(TLP, 10)
+btnCamFocusClose = Button(TLP, 11)
+btnCamAutoFocus = Button(TLP, 12)
+
+@eventEx([btnCamFocusFar, btnCamFocusClose], ['Pressed', 'Released'])
+def MicMuteEventHandler(button, state):
+    button.SetState(state)
+    if state == 'Pressed':
+        Camera.Focus(True, Camera.wide if button is btnCamFocusClose else Camera.tele)
+    else:
+        Camera.Focus(False)
+        
+@eventEx([btnCamAutoFocus], ['Pressed'])
+def MicMuteEventHandler(button, state):
+    if Status['Autofocus']:
+        button.SetState(False)       
+        Camera.AutoFocus(False)
+    else:
+        button.SetState(True)       
+        Camera.AutoFocus(True)
+
 @Timer(2)
 def StatusPolling(timer, count):
     Recorder.Update('RemainingRecordingTime', {'Drive': 'Primary'})
@@ -134,6 +138,7 @@ def Initialize():
     Recorder.Update('AudioLevel', {'L/R': 'Left'})
     ResetSettings()
     TLP.HideAllPopups()
+    Camera.AutoFocus(True)
     print('startup')
 
 def TimerSave(timer, count):
@@ -144,8 +149,8 @@ def TimerSave(timer, count):
         
 
 SavingTimer = Timer(1, TimerSave)
-SavingTimer.Stop()
-
+if SavingTimer.State != 'Stopped':
+    SavingTimer.Stop()
 
 
 def ReadyCount(timer, count):  
@@ -169,7 +174,10 @@ def ReadyCount(timer, count):
             
 ReadyTimer = Timer(1, ReadyCount)
 ReadyTimer.Stop()
-
+if ReadyTimer.State != 'Stopped':
+    ReadyTimer.Stop()
+    
+    
 #def Shutdown(timer, count):
     #if count == 1:
         #SystemShutdown()
@@ -190,10 +198,16 @@ def LightsOn(timer, count):
 LightsOnTimer = Timer(3, LightsOn)   
 LightsOnTimer.Stop()
 
+if LightsOnTimer.State != 'Stopped':
+    LightsOnTimer.Stop()
+    
 def LightsOff(timer, count):
     Lights.Set('SendDMX512Data',0, {'Slot': '1'})    
 LightsOffTimer = Timer(3, LightsOff)   
 LightsOffTimer.Stop()
+
+if LightsOffTimer.State != 'Stopped':
+    LightsOffTimer.Stop()
 
 def ResetSettings():
     RecBtn.TPbtn.SetState(0)
@@ -256,6 +270,7 @@ def SMPStatus(Command, Value , Qualifier):
 #def TLPMotionDetected(interface, state):
     #if state == 'Motion':
         #SleepTimer.Restart()
+        
 @event(BtnTLP.BtnsList, ['Pressed','Tapped','Held','Released'])
 def TLPBtnsPressed(button, state):
     #SleepTimer.Restart()
@@ -486,7 +501,12 @@ def TLPBtnsPressed(button, state):
 
 VUTimer = Timer(0.2, BarMeter)
 VUTimer.Stop()
+if VUTimer.State != 'Stopped':
+    VUTimer.Stop()
+    
 #SleepTimer = Timer(3600, Shutdown)
 ReadyTimer = Timer(1, ReadyCount)
 ReadyTimer.Stop()
+
 Initialize()
+
