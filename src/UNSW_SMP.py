@@ -16,6 +16,7 @@ ProgramLog(Version(),'info')
 from Objects import Btns, Labels
 from ObjectsModule import ObjectsInitialize, TP, TPME, Counter, Pressed, Momtry
 from ConnectionsModule import TCPConnection, ModuleConnection
+from BD_PF120 import BirdogPF120
 Processor = ProcessorDevice('ProcessorAlias')
 TLP = UIDevice('PanelAlias')
 
@@ -33,6 +34,8 @@ Recorder = SMP351.SerialClass(Processor, 'COM1', Baud=9600, Model='SMP 351')
 Lights = Enttec.EthernetClass(IPData['DMX'], 6454, Model='DIN-ODE')
 Displays = Samsung.SerialClass(Processor, 'IRS1', Model='QM32R')
 LightboardPower = RelayInterface(Processor, 'RLY1')
+Camera = BirdogPF120(EthernetClientInterface(IPData['PTZ'], 52381, Protocol='UDP'), 1, 5)
+
 
 BtnTLP = ObjectsInitialize(TLP,Btns,Labels)
 
@@ -43,6 +46,7 @@ def DisplayPower(state):
 
 # Display1Connect = ModuleConnection(Display1, 'Samsung', ['Power'], 10, {'Device ID': '0'})
 # Display2Connect = ModuleConnection(Display2, 'Samsung', ['Power'], 10, {'Device ID': '0'})
+
 
 InputGroup = TPME(BtnTLP.BtnsList, [4,5,6,7])
 PresetGroup = TPME(BtnTLP.BtnsList, [341,342,343])
@@ -428,7 +432,11 @@ def TLPBtnsPressed(button, state):
                 SavingTimer.Restart()      
         elif button.ID in range(710,712):   # camera zooming
             button.SetState(1)
-            # Camera.Set('Zoom', button.Name, {'Zoom Speed': 35})             
+            if button.ID is 710:
+                Camera.Zoom(True, Camera.tele) 
+            else:
+                Camera.Zoom(True, Camera.wide) 
+                     
         elif button.ID in range(712,716):   # camera control
             CamPos.TPbtn.SetState(Status[button.ID]) 
             # Camera.Set('PanTilt', button.Name, {'Pan Tilt Speed': 35})        
@@ -459,7 +467,8 @@ def TLPBtnsPressed(button, state):
             PresetGroup.MEGroup.SetCurrent(Status[button.ID])
         elif button.ID in range(710,712):   # camera zooming
             button.SetState(0)
-            # Camera.Set('Zoom', 'Stop', {'Zoom Speed': 35})
+            Camera.Zoom(False)
+            
         elif button.ID in range(712,716):   # camera control
             CamPos.TPbtn.SetState(0)
             # Camera.Set('PanTilt', 'Stop', {'Pan Tilt Speed': 35}) 
