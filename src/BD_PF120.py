@@ -49,14 +49,7 @@ class BirdogPF120:
         self.__send__(cmd)
 
     
-    @eventEx(__interface__, ['Connected', 'Disconnected'])
-    def SMDConnectionEvent(self, interface : EthernetClientInterface, state):
-        print('SMD on IP', interface.IPAddress, 'is', state)
-        if state == 'Connected':
-            interface.StartKeepAlive(30, 'Q')
-        else:
-            interface.StopKeepAlive()
-            self.__connectionTimer__.Restart()
+    
 
     
 

@@ -37,6 +37,17 @@ LightboardPower = RelayInterface(Processor, 'RLY1')
 Camera = BirdogPF120(EthernetClientInterface(IPData['PTZ'], 52381, Protocol='UDP'), 1, 5)
 Camera.Connect()
 
+
+@event(Camera.__interface__, ['Connected', 'Disconnected'])
+def SMDConnectionEvent(self, interface : EthernetClientInterface, state):
+    print('SMD on IP', interface.IPAddress, 'is', state)
+    if state == 'Connected':
+        interface.StartKeepAlive(30, 'Q')
+    else:
+        interface.StopKeepAlive()
+        Camera.__connectionTimer__.Restart()
+            
+            
 BtnTLP = ObjectsInitialize(TLP,Btns,Labels)
 
 def DisplayPower(state):
