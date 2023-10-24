@@ -35,7 +35,7 @@ Lights = Enttec.EthernetClass(IPData['DMX'], 6454, Model='DIN-ODE')
 Displays = Samsung.SerialClass(Processor, 'IRS1', Model='QM32R')
 LightboardPower = RelayInterface(Processor, 'RLY1')
 Camera = BirdogPF120(EthernetClientInterface(IPData['PTZ'], 52381, Protocol='UDP'), 1, 5)
-
+Camera.Connect()
 
 BtnTLP = ObjectsInitialize(TLP,Btns,Labels)
 
