@@ -41,6 +41,10 @@ Camera = BirdogPF120(EthernetClientInterface(IPData['PTZ'], 52381, Protocol='UDP
 
 BtnTLP = ObjectsInitialize(TLP, Btns, Labels)
 
+def StopTimer(timer):
+    if timer.State != 'Stopped':
+        timer.Stop()
+        
 def DisplayPower(state):
     dispStr = 'On' if state else 'Off'
     print('disp pwr', dispStr)
@@ -146,13 +150,10 @@ def TimerSave(timer, count):
     if count == 30:
         TLP.HideAllPopups()
         TLP.ShowPage('1 Welcome')
-        SavingTimer.Stop()
-        
+        StopTimer(SavingTimer)
 
 SavingTimer = Timer(1, TimerSave)
-print(SavingTimer.State)
-if SavingTimer.State != 'Stopped':
-    SavingTimer.Stop()
+StopTimer(SavingTimer)
 
 
 def ReadyCount(timer, count):  
@@ -170,14 +171,12 @@ def ReadyCount(timer, count):
                 Status['TimingDur'].CounterState('Start') 
             RecBtn.TPbtn.SetState(1)                   
             StopRecBtn.TPbtn.SetVisible(True)
-            ReadyTimer.Stop()
+            StopTimer(ReadyTimer)
 
              
             
 ReadyTimer = Timer(1, ReadyCount)
-ReadyTimer.Stop()
-if ReadyTimer.State != 'Stopped':
-    ReadyTimer.Stop()
+StopTimer(ReadyTimer)
     
     
 #def Shutdown(timer, count):
@@ -192,24 +191,25 @@ def SystemShutdown():
     InputGroup.MEGroup.SetCurrent(RecSetupBtn.TPbtn)
     Lights.Set('SendDMX512Data',255, {'Slot': '1'})
     Lights.Set('SendDMX512Data',0, {'Slot': '1'})
-    LightsOnTimer.Stop()
+    StopTimer(LightsOnTimer)
     LightsOffTimer.Restart()
 
 def LightsOn(timer, count):
     Lights.Set('SendDMX512Data',255, {'Slot': '1'})    
 LightsOnTimer = Timer(3, LightsOn)   
-LightsOnTimer.Stop()
+StopTimer(LightsOnTimer)
 
 if LightsOnTimer.State != 'Stopped':
-    LightsOnTimer.Stop()
+    StopTimer(LightsOnTimer)
     
 def LightsOff(timer, count):
-    Lights.Set('SendDMX512Data',0, {'Slot': '1'})    
+    Lights.Set('SendDMX512Data',0, {'Slot': '1'})  
+      
 LightsOffTimer = Timer(3, LightsOff)   
-LightsOffTimer.Stop()
+StopTimer(LightsOffTimer)
 
 if LightsOffTimer.State != 'Stopped':
-    LightsOffTimer.Stop()
+    StopTimer(LightsOffTimer)
 
 def ResetSettings():
     RecBtn.TPbtn.SetState(0)
@@ -281,7 +281,7 @@ def TLPBtnsPressed(button, state):
             Status['Type'] = 'Panopto'
             #if Status['Recorder'][1] in ('Connected','ConnectedAlready')
             if Status['Recorder'] in ('Connected','ConnectedAlready'):
-                LightsOffTimer.Stop()
+                StopTimer(LightsOffTimer)
                 LightsOnTimer.Restart()
                 TLP.ShowPage('2 RecordSetup')
                 TLP.ShowPopup('RecordSetup')
@@ -295,7 +295,7 @@ def TLPBtnsPressed(button, state):
             if Status['Recorder'] in ('Connected','ConnectedAlready'):
                 TLP.ShowPage('USB')
         elif button.ID == Btns['Start']:  #usb recording - check usb status before proceeding
-            LightsOffTimer.Stop()
+            StopTimer(LightsOffTimer)
             LightsOnTimer.Restart()
             DisplayPower(True)
             LightboardPower.SetState(1)
@@ -389,19 +389,20 @@ def TLPBtnsPressed(button, state):
             if button.ID == 14:
                 Lights.Set('SendDMX512Data',0, {'Slot': '1'})
                 Lights.Set('SendDMX512Data',255, {'Slot': '1'})
-                LightsOffTimer.Stop()
+                StopTimer(LightsOffTimer)
                 LightsOnTimer.Restart()
             elif button.ID == 15:
                 Lights.Set('SendDMX512Data',255, {'Slot': '1'})
                 Lights.Set('SendDMX512Data',0, {'Slot': '1'})
-                LightsOnTimer.Stop()
+                StopTimer(LightsOnTimer)
                 LightsOffTimer.Restart()
                 
             #Lights.Set('SendDMX512Data',Status[button.ID], {'Slot': '1'})
             
         elif button.ID in (34,35): # smp inputs
             Recorder.Set('InputA', button.Name)
-            SourceGroup.MEGroup.SetCurrent(button)
+            # SourceGroup.MEGroup.SetCurrent(button)
+            
         elif button.ID == 301: # record button
             if Status['RecState'] == 'Start':
                 TLP.SetLEDBlinking(65533, 'Medium', ['Off', 'Red'])
@@ -464,33 +465,14 @@ def TLPBtnsPressed(button, state):
                 Camera.Zoom(True, Camera.tele) 
             else:
                 Camera.Zoom(True, Camera.wide) 
-                     
-    elif state == 'Held': 
-        if button.ID in(341,342): # camera preset save
-            button.SetBlinking('Fast', [0, 1])
-            button.SetText('Saved') 
-            # Camera.Set('PresetSave', str(button.ID - 340))            
+                           
     elif state == 'Tapped':     
-        if button.ID in range(710,716):   # camera control
-            CamPos.TPbtn.SetState(0)
-            button.SetState(0)
-            # Camera.Set('PanTilt', 'Stop', {'Pan Tilt Speed': 35})   
-            # Camera.Set('Zoom', 'Stop', {'Zoom Speed': 35})
-        elif button.ID in(341,342):
-            PresetGroup.MEGroup.SetCurrent(Status[button.ID])
-            # Camera.Set('PresetRecall', str(button.ID-340)) 
-            
-        elif button.ID in (14,15): # lights
+        if button.ID in (14,15): # lights
             LightGroup.MEGroup.SetCurrent(button)
             #print(Status[button.ID])
             Lights.Set('SendDMX512Data',Status[button.ID], {'Slot': '1'})   
-    elif state == 'Released': 
-        if button.ID in(341,342):
-            # Camera.Set('PresetSave', str(button.ID-340))
-
-            button.SetText(button.Name)
-            PresetGroup.MEGroup.SetCurrent(Status[button.ID])
-        elif button.ID in range(710,711):   # camera zooming
+    elif state == 'Released':
+        if button.ID in range(710,711):   # camera zooming
             button.SetState(0)
             Camera.Zoom(False)
    
@@ -503,7 +485,7 @@ if VUTimer.State != 'Stopped':
     
 #SleepTimer = Timer(3600, Shutdown)
 ReadyTimer = Timer(1, ReadyCount)
-ReadyTimer.Stop()
+StopTimer(ReadyTimer)
 
 Initialize()
 
