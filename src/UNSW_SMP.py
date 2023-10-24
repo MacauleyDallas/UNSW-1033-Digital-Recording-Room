@@ -66,6 +66,10 @@ RecSetupBtn = TP(BtnTLP.BtnsList, 4)
 RecBtn = TP(BtnTLP.BtnsList, 301)
 CamBtn = TP(BtnTLP.BtnsList, 6) # option selection
 PCBtn = TP(BtnTLP.BtnsList, 7)
+
+onUSBBtn = TP(BtnTLP.BtnsList, 17)
+onPanoptoBtn = TP(BtnTLP.BtnsList, 18)
+
 # CamPos = TP(BtnTLP.BtnsList, 45)
 
 # Preset1Btn = TP(BtnTLP.BtnsList, 341) # cam presets
@@ -201,7 +205,14 @@ def ReadyCount(timer, count):
             
 ReadyTimer = Timer(1, ReadyCount)
 StopTimer(ReadyTimer)
-    
+
+
+def EndLockout():
+    onUSBBtn.SetEnable(True)
+    onPanoptoBtn.SetEnable(True)
+
+LockoutTimer = Timer(5, EndLockout)
+StopTimer(LockoutTimer)
     
 #def Shutdown(timer, count):
     #if count == 1:
@@ -218,6 +229,9 @@ def SystemShutdown():
     StopTimer(LightsOnTimer)
     LightsOffTimer.Restart()
     lightButtons.SetCurrent(btnLightsOff)
+    onUSBBtn.SetEnable(False)
+    onPanoptoBtn.SetEnable(False)
+    LockoutTimer.Restart()
     
 
 def LightsOn(timer, count):
@@ -267,7 +281,7 @@ def SMPStatus(Command, Value , Qualifier):
                 USBState.TPbtn.SetState(0)
                 BtnTLP.LblList[1].SetText('Insert USB Drive to Begin')
                 BtnTLP.LblList[0].SetText('No USB Drive Connected')
-                BtnTLP.LblList[6].SetText('Wait upto 10 seconds for USB to Load')
+                BtnTLP.LblList[6].SetText('Wait up to 10 seconds for USB to load')
     elif Command == 'RemainingRearUSBStorage':
         BtnTLP.LblList[3].SetText(str(Value)+Qualifier['Unit'])
     elif Command == 'Record':
