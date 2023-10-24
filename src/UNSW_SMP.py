@@ -70,10 +70,6 @@ PCBtn = TP(BtnTLP.BtnsList, 7)
 onUSBBtn = TP(BtnTLP.BtnsList, 17)
 onPanoptoBtn = TP(BtnTLP.BtnsList, 18)
 
-# CamPos = TP(BtnTLP.BtnsList, 45)
-
-# Preset1Btn = TP(BtnTLP.BtnsList, 341) # cam presets
-# Preset2Btn = TP(BtnTLP.BtnsList, 342)
 StopRecBtn = TP(BtnTLP.BtnsList, 302)
 
 AudLvl = Level(TLP, 37)
@@ -210,6 +206,7 @@ StopTimer(ReadyTimer)
 def EndLockout():
     onUSBBtn.SetEnable(True)
     onPanoptoBtn.SetEnable(True)
+    StopTimer(LockoutTimer)
 
 LockoutTimer = Timer(5, EndLockout)
 StopTimer(LockoutTimer)
