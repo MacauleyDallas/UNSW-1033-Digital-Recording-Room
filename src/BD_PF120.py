@@ -25,27 +25,31 @@ class BirdogPF120:
         self.camId = id
         self.zoomSpeed = ZoomSpeed
    
-    def Connect(self):
-        self.__interface__.Connect()
-        self.__connectionTimer__ = Timer(5, self.KeepAlive)
-        self.__connectionTimer__.Restart()
-
-    def Disconnect(self):
-        self.__interface__.Disconnect()
-        self.__connectionTimer__.Stop()
-
-    def KeepAlive(self, *args):
-        self.__interface__.Send('8{}090400FF'.format())
-        self.__connectionTimer__.Restart()
-    
     def Zoom(self, State : bool = True, Direction : int = 1):
         if State:
             if Direction == self.tele:
-                cmd = '8{}0104072{}}FF'.format(self.camId, self.zoomSpeed)
+                cmd = '8{}0104072{}FF'.format(self.camId, self.zoomSpeed)
             elif Direction == self.wide:
                 cmd = '8{}0104073{}FF'.format(self.camId, self.zoomSpeed)
         else:
-            cmd = '8{}01040700FF'
+            cmd = '8{}01040700FF'.format(self.camId)
+        self.__send__(cmd)
+        
+    def AutoFocus(self, State : bool = True):
+        if State:
+            cmd = '8{}01043802FF'.format(self.camId, self.zoomSpeed)
+        else:
+            cmd = '8{}01043803FF'.format(self.camId)
+        self.__send__(cmd)
+        
+    def Focus(self, State : bool = True, Direction : int = 1):
+        if State:
+            if Direction == self.tele:
+                cmd = '8{}0104082{}FF'.format(self.camId, self.zoomSpeed)
+            elif Direction == self.wide:
+                cmd = '8{}0104083{}FF'.format(self.camId, self.zoomSpeed)
+        else:
+            cmd = '8{}01040800FF'.format(self.camId)
         self.__send__(cmd)
 
     
