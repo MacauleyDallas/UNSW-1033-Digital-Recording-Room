@@ -42,7 +42,7 @@ class BirdogPF120:
         if State:
             if Direction == self.tele:
                 cmd = '8{}0104072{}}FF'.format(self.camId, self.zoomSpeed)
-            elif Direction == self.wide
+            elif Direction == self.wide:
                 cmd = '8{}0104073{}FF'.format(self.camId, self.zoomSpeed)
         else:
             cmd = '8{}01040700FF'
