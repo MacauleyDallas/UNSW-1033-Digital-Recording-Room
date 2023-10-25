@@ -210,6 +210,8 @@ def SystemShutdown():
     Lights.Set('SendDMX512Data',0, {'Slot': '1'})
     StopTimer(LightsOnTimer)
     LightsOffTimer.Restart()
+    onUSBBtn.SetEnable(False)
+    onPanoptoBtn.SetEnable(False)
 
 def LightsOn(timer, count):
     Lights.Set('SendDMX512Data',255, {'Slot': '1'})    
