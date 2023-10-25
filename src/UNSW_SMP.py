@@ -89,16 +89,25 @@ btnCamFocusFar = Button(TLP, 10)
 btnCamFocusClose = Button(TLP, 11)
 btnCamAutoFocus = Button(TLP, 12)
 
+btnHDMILightboard = Button(TLP, 33)
+btnHDMIFlylead = Button(TLP, 34)
+hdmiSourceSet = MESet([btnHDMILightboard, btnHDMIFlylead])
+
+@eventEx(hdmiSourceSet.Objects, ['Pressed'])
+def HdmiSourceSelectEventHandler(button, state):
+    hdmiSourceSet.SetCurrent(button)
+    Recorder.Set('InputA', '1' if button is btnHDMILightboard else '2')
+
 @eventEx([btnCamFocusFar, btnCamFocusClose], ['Pressed', 'Released'])
-def MicMuteEventHandler(button, state):
-    button.SetState(state)
+def CamFocusChangeEventHandler(button, state): 
+    button.SetState(True if state == 'Pressed' else False)
     if state == 'Pressed':
         Camera.Focus(True, Camera.wide if button is btnCamFocusClose else Camera.tele)
     else:
         Camera.Focus(False)
-        
+
 @eventEx([btnCamAutoFocus], ['Pressed'])
-def MicMuteEventHandler(button, state):
+def CamAutofocusToggleEventHandler(button, state):
     if Status['Autofocus']:
         button.SetState(False)       
         Camera.AutoFocus(False)
@@ -127,9 +136,6 @@ def lightButtonEventHandler(button, state):
     #     StopTimer(LightsOnTimer)
     #     LightsOffTimer.Restart()
         
-
-            
-
 @Timer(2)
 def StatusPolling(timer, count):
     Recorder.Update('RemainingRecordingTime', {'Drive': 'Primary'})
