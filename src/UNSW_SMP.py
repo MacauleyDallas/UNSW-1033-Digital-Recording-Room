@@ -478,7 +478,7 @@ def TLPBtnsPressed(button, state):
         elif button.ID in range(710, 711):   # camera zooming
             button.SetState(1)
             if button.ID is 710:
-                Camera.Zoom(True, Camera.tele) 
+                Camera.Zoom(True, Camera.tele)
             else:
                 Camera.Zoom(True, Camera.wide) 
                      
@@ -504,12 +504,7 @@ def TLPBtnsPressed(button, state):
                 SetLightsOff()
 
     elif state == 'Released': 
-        if button.ID in(341,342):
-            # Camera.Set('PresetSave', str(button.ID-340))
-
-            button.SetText(button.Name)
-            PresetGroup.MEGroup.SetCurrent(Status[button.ID])
-        elif button.ID in range(710,711):   # camera zooming
+        if button.ID in range(710, 711): # camera zooming
             button.SetState(0)
             Camera.Zoom(False)
    

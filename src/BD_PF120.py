@@ -15,7 +15,8 @@ class BirdogPF120:
         # TODO: Check if ethernet or rs232 interface
         if True:
             packet = self.__addIPHeader__(packet)
-        # self.__interface__.Send(packet)
+        self.__interface__.Send(packet)
+        print(packet)
         
     def __init__(self, interface, id, ZoomSpeed):
         self.__interface__ = interface
@@ -25,7 +26,7 @@ class BirdogPF120:
     def Zoom(self, State : bool = True, Direction : int = 1):
         if State:
             if Direction == self.tele:
-                cmd = '8{}01040702FF'.format(self.camId)
+                cmd = '\x8{}01040702FF'.format(self.camId)
             elif Direction == self.wide:
                 cmd = '8{}01040703FF'.format(self.camId)
         else:
