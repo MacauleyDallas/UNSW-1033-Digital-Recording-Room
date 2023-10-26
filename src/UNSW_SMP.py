@@ -107,7 +107,7 @@ def CamZoomChangeEventHandler(button, state):
     if state == 'Pressed':
         Camera.Zoom(True, Camera.wide if button is btnCamZoomOut else Camera.tele)
     else:
-        Camera.Focus(False)
+        Camera.Zoom(False)
 
 @eventEx([btnCamFocusFar, btnCamFocusClose], ['Pressed', 'Released'])
 def CamFocusChangeEventHandler(button, state): 
