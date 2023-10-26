@@ -323,7 +323,6 @@ def TLPBtnsPressed(button, state):
             Status['Type'] = 'Panopto'
             #if Status['Recorder'][1] in ('Connected','ConnectedAlready')
             if Status['Recorder'] in ('Connected','ConnectedAlready'):
-                SetLightsOn()
                 TLP.ShowPage('2 RecordSetup')
                 TLP.ShowPopup('RecordSetup')
                 InputGroup.MEGroup.SetCurrent(RecSetupBtn.TPbtn)
@@ -338,7 +337,6 @@ def TLPBtnsPressed(button, state):
             if Status['Recorder'] in ('Connected','ConnectedAlready'):
                 TLP.ShowPage('USB')
         elif button.ID == Btns['Start']:  #usb recording - check usb status before proceeding
-            SetLightsOn()
             DisplayPower(True)
             Camera.Power(True)
             LightboardPower.SetState(1)
@@ -366,7 +364,7 @@ def TLPBtnsPressed(button, state):
             if button.ID != 204:           
                 Status['TimingRemain'] = Counter(Status[button.ID], 'Down', TLP, TimeRemainLbl.TPbtn)  
             else:
-                Status['TimingRemain'] = Counter(1, 'Up', TLP, TimeRemainLbl.TPbtn)         
+                Status['TimingRemain'] = Counter(1, 'Up', TLP, TimeRemainLbl.TPbtn)
             Status['TimingDur'] = Counter(1, 'Up', TLP, TimeDurLbl.TPbtn)            
             global TestStatus
             if Status['TimingRemain'] != None:            
