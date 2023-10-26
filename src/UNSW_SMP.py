@@ -67,7 +67,7 @@ RecBtn = TP(BtnTLP.BtnsList, 301)
 CamBtn = TP(BtnTLP.BtnsList, 6) # option selection
 PCBtn = TP(BtnTLP.BtnsList, 7)
 
-onUSBBt = TP(BtnTLP.BtnsList, 17)
+onUSBBtn = TP(BtnTLP.BtnsList, 17)
 onPanoptoBtn = TP(BtnTLP.BtnsList, 18)
 
 StopRecBtn = TP(BtnTLP.BtnsList, 302)
