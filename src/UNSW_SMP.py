@@ -85,9 +85,9 @@ Status = {'RecState' : '', 'USBDrive' : '', 'RecRes' : '', 'Select HD' : '1080p'
 TLP.ShowPage('1 Welcome')
 BtnTLP.LblList[7].SetText('Recorder Ready')
 
-btnCamFocusFar = Button(TLP, 10)
-btnCamFocusClose = Button(TLP, 11)
-btnCamAutoFocus = Button(TLP, 12)
+btnCamFocusFar = Button(TLP, 1110)
+btnCamFocusClose = Button(TLP, 1111)
+btnCamAutoFocus = Button(TLP, 1112)
 
 btnHDMILightboard = Button(TLP, 33)
 btnHDMIFlylead = Button(TLP, 34)
@@ -209,6 +209,7 @@ def SystemShutdown():
     SetLightsOff()
     onUSBBtn.TPbtn.SetEnable(False)
     onPanoptoBtn.TPbtn.SetEnable(False)
+    LockoutTimer.Restart()
 
 def LightsOn(timer, count):
     Lights.Set('SendDMX512Data',255, {'Slot': '1'})    
