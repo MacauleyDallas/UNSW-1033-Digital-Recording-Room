@@ -105,7 +105,7 @@ def HdmiSourceSelectEventHandler(button, state):
 def CamZoomChangeEventHandler(button, state): 
     button.SetState(True if state == 'Pressed' else False)
     if state == 'Pressed':
-        Camera.Zoom(True, Camera.wide if button is btnCamFocusClose else Camera.tele)
+        Camera.Zoom(True, Camera.wide if button is btnCamZoomOut else Camera.tele)
     else:
         Camera.Focus(False)
 
@@ -221,6 +221,7 @@ def SystemShutdown():
     onUSBBtn.TPbtn.SetEnable(False)
     onPanoptoBtn.TPbtn.SetEnable(False)
     LockoutTimer.Restart()
+    Camera.Power(False)
 
 def LightsOn(timer, count):
     Lights.Set('SendDMX512Data',255, {'Slot': '1'})    
@@ -325,6 +326,8 @@ def TLPBtnsPressed(button, state):
                 InputGroup.MEGroup.SetCurrent(RecSetupBtn.TPbtn)
                 DisplayPower(True)
                 LightboardPower.SetState(1)
+                Camera.Power(True)
+
                 
         elif button.ID == Btns['USB']: #usb selected
             #if Status['Recorder'][1] in ('Connected','ConnectedAlready'):
@@ -334,6 +337,7 @@ def TLPBtnsPressed(button, state):
         elif button.ID == Btns['Start']:  #usb recording - check usb status before proceeding
             SetLightsOn()
             DisplayPower(True)
+            Camera.Power(True)
             LightboardPower.SetState(1)
             
             if Status['USBDrive'] == 'Rear USB':

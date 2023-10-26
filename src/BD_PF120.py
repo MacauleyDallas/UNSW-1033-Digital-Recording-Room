@@ -7,9 +7,17 @@ class BirdogPF120:
     __interface__ = None
     __connectionTimer__ = None
 
+    
     def __addIPHeader__(self, cmd):
         l = len([cmd[i:i + 2] for i in range(0, len(cmd), 2)])
         return b''.join([bytes.fromhex('0100'), bytes.fromhex(format(l, '04')), bytes.fromhex('00000000'), bytes.fromhex(cmd)])
+
+    def Power(self, State : bool = True):
+        if State:
+            cmd = '8{}01040002FF'.format(self.camId)
+        else:
+            cmd = '8{}01040003FF'.format(self.camId)
+        self.__send__(cmd)
 
     def __send__(self, packet):
         # TODO: Check if ethernet or rs232 interface
