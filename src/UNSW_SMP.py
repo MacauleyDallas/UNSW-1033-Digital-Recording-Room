@@ -188,7 +188,7 @@ ReadyTimer = Timer(1, ReadyCount)
 StopTimer(ReadyTimer)
 
 
-def EndLockout():
+def EndLockout(timer, count):
     onUSBBtn.TPbtn.SetEnable(True)
     onPanoptoBtn.TPbtn.SetEnable(True)
     StopTimer(LockoutTimer)
