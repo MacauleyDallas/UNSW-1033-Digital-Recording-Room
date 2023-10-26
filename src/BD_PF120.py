@@ -9,7 +9,7 @@ class BirdogPF120:
 
     def __addIPHeader__(self, cmd):
         l = len([cmd[i:i + 2] for i in range(0, len(cmd), 2)])
-        return b''.join([bytes.fromhex('0100'), bytes.fromhex(format(l, '04')), bytes.fromhex('000000'), bytes.fromhex(cmd)])
+        return b''.join([bytes.fromhex('0100'), bytes.fromhex(format(l, '04')), bytes.fromhex('00000000'), bytes.fromhex(cmd)])
 
     def __send__(self, packet):
         # TODO: Check if ethernet or rs232 interface
@@ -26,7 +26,7 @@ class BirdogPF120:
     def Zoom(self, State : bool = True, Direction : int = 1):
         if State:
             if Direction == self.tele:
-                cmd = '\x8{}01040702FF'.format(self.camId)
+                cmd = '8{}01040702FF'.format(self.camId)
             elif Direction == self.wide:
                 cmd = '8{}01040703FF'.format(self.camId)
         else:

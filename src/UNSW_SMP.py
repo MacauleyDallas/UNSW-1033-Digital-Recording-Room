@@ -85,6 +85,9 @@ Status = {'RecState' : '', 'USBDrive' : '', 'RecRes' : '', 'Select HD' : '1080p'
 TLP.ShowPage('1 Welcome')
 BtnTLP.LblList[7].SetText('Recorder Ready')
 
+btnCamZoomIn = Button(TLP, 1131)
+btnCamZoomOut = Button(TLP, 1132)
+
 btnCamFocusFar = Button(TLP, 1110)
 btnCamFocusClose = Button(TLP, 1111)
 btnCamAutoFocus = Button(TLP, 1112)
@@ -97,6 +100,14 @@ hdmiSourceSet = MESet([btnHDMILightboard, btnHDMIFlylead])
 def HdmiSourceSelectEventHandler(button, state):
     hdmiSourceSet.SetCurrent(button)
     Recorder.Set('InputA', '1' if button is btnHDMILightboard else '2')
+
+@eventEx([btnCamZoomIn, btnCamZoomOut], ['Pressed', 'Released'])
+def CamZoomChangeEventHandler(button, state): 
+    button.SetState(True if state == 'Pressed' else False)
+    if state == 'Pressed':
+        Camera.Zoom(True, Camera.wide if button is btnCamFocusClose else Camera.tele)
+    else:
+        Camera.Focus(False)
 
 @eventEx([btnCamFocusFar, btnCamFocusClose], ['Pressed', 'Released'])
 def CamFocusChangeEventHandler(button, state): 
@@ -299,7 +310,7 @@ def SMPStatus(Command, Value , Qualifier):
 #def TLPMotionDetected(interface, state):
     #if state == 'Motion':
         #SleepTimer.Restart()
-        
+        Button
 @event(BtnTLP.BtnsList, ['Pressed','Tapped','Held','Released'])
 def TLPBtnsPressed(button, state):
     #SleepTimer.Restart()
@@ -475,12 +486,6 @@ def TLPBtnsPressed(button, state):
                 else:
                     BtnTLP.LblList[10].SetText('Recording Saved to Panopto')
                 SavingTimer.Restart()      
-        elif button.ID in range(710, 711):   # camera zooming
-            button.SetState(1)
-            if button.ID is 710:
-                Camera.Zoom(True, Camera.tele)
-            else:
-                Camera.Zoom(True, Camera.wide) 
                      
     elif state == 'Held': 
         if button.ID in(341,342): # camera preset save
@@ -502,12 +507,6 @@ def TLPBtnsPressed(button, state):
                 SetLightsOn()
             elif button.ID == 15:
                 SetLightsOff()
-
-    elif state == 'Released': 
-        if button.ID in range(710, 711): # camera zooming
-            button.SetState(0)
-            Camera.Zoom(False)
-   
        
 
 VUTimer = Timer(0.2, BarMeter)
