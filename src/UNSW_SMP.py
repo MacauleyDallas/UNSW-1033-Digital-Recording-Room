@@ -122,9 +122,11 @@ def CamAutofocusToggleEventHandler(button, state):
     if Status['Autofocus']:
         button.SetState(False)       
         Camera.AutoFocus(False)
+        Status['Autofocus'] = False
     else:
         button.SetState(True)       
         Camera.AutoFocus(True)
+        Status['Autofocus'] = True
 
 @Timer(2)
 def StatusPolling(timer, count):
