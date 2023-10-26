@@ -67,7 +67,7 @@ RecBtn = TP(BtnTLP.BtnsList, 301)
 CamBtn = TP(BtnTLP.BtnsList, 6) # option selection
 PCBtn = TP(BtnTLP.BtnsList, 7)
 
-onUSBBtn = TP(BtnTLP.BtnsList, 17)
+onUSBBt = TP(BtnTLP.BtnsList, 17)
 onPanoptoBtn = TP(BtnTLP.BtnsList, 18)
 
 StopRecBtn = TP(BtnTLP.BtnsList, 302)
@@ -189,8 +189,8 @@ StopTimer(ReadyTimer)
 
 
 def EndLockout():
-    onUSBBtn.SetEnable(True)
-    onPanoptoBtn.SetEnable(True)
+    onUSBBtn.TPbtn.SetEnable(True)
+    onPanoptoBtn.TPbtn.SetEnable(True)
     StopTimer(LockoutTimer)
 
 LockoutTimer = Timer(5, EndLockout)
@@ -207,8 +207,8 @@ def SystemShutdown():
     TLP.ShowPage('1 Welcome')
     InputGroup.MEGroup.SetCurrent(RecSetupBtn.TPbtn)
     SetLightsOff()
-    onUSBBtn.SetEnable(False)
-    onPanoptoBtn.SetEnable(False)
+    onUSBBtn.TPbtn.SetEnable(False)
+    onPanoptoBtn.TPbtn.SetEnable(False)
 
 def LightsOn(timer, count):
     Lights.Set('SendDMX512Data',255, {'Slot': '1'})    
