@@ -102,7 +102,7 @@ def HdmiSourceSelectEventHandler(button, state):
     Recorder.Set('InputA', '1' if button is btnHDMILightboard else '2')
 
 @eventEx([btnCamZoomIn, btnCamZoomOut], ['Pressed', 'Released'])
-def CamZoomChangeEventHandler(button, state): 
+def CamZoomChangeEventHandler(button, state):
     button.SetState(True if state == 'Pressed' else False)
     if state == 'Pressed':
         Camera.Zoom(True, Camera.wide if button is btnCamZoomOut else Camera.tele)
@@ -111,6 +111,7 @@ def CamZoomChangeEventHandler(button, state):
 
 @eventEx([btnCamFocusFar, btnCamFocusClose], ['Pressed', 'Released'])
 def CamFocusChangeEventHandler(button, state): 
+    Camera.AutoFocus(False)
     button.SetState(True if state == 'Pressed' else False)
     if state == 'Pressed':
         Camera.Focus(True, Camera.wide if button is btnCamFocusClose else Camera.tele)
